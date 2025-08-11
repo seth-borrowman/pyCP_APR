@@ -10,40 +10,36 @@ derivative works, distribute copies to the public, perform publicly and display 
 and to permit others to do so.
 """
 from setuptools import setup, find_packages
-from glob import glob
+from pathlib import Path
+
 __version__ = "1.0.2"
 
-# add readme
-with open('README.md', 'r') as f:
-    LONG_DESCRIPTION = f.read()
+# Read long description
+long_description = Path("README.md").read_text(encoding="utf-8")
 
-# add dependencies
-with open('requirements.txt', 'r') as f:
-    INSTALL_REQUIRES = f.read().strip().split('\n')
+# Read dependencies
+install_requires = Path("requirements.txt").read_text(encoding="utf-8").strip().splitlines()
 
 setup(
-    name='pyCP_APR',
+    name="pyCP_APR",
     version=__version__,
-    author='Maksim E. Eren, Juston S. Moore, Erik Skau, Manish Bhattarai, Gopinath Chennupati, Boian S. Alexandrov',
-    author_email='maksim@lanl.gov',
-    description='pyCP_APR: CP-APR Tensor Decomposition with PyTorch Backend.',
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type='text/markdown',
-    package_dir={'pyCP_APR': 'pyCP_APR'},
-    platforms = ["Linux", "Mac", "Windows"],
-    include_package_data=True,
-    setup_requires=[
-        'joblib', 'matplotlib', 'numpy', 'numpy-indexed',
-        'pandas', 'scikit-learn', 'scipy', 'seaborn', 'torch'
-    ],
-    url='https://github.com/lanl/pyCP_APR',
+    author="Maksim E. Eren, Juston S. Moore, Erik Skau, Manish Bhattarai, Gopinath Chennupati, Boian S. Alexandrov",
+    author_email="maksim@lanl.gov",
+    description="pyCP_APR: CP-APR Tensor Decomposition with PyTorch Backend.",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
+    url="https://github.com/lanl/pyCP_APR",
     packages=find_packages(),
+    include_package_data=True,
+    platforms=["Linux", "Mac", "Windows"],
+    python_requires=">=3.9,<3.13",  # Max Python version added
+    install_requires=install_requires,
     classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Programming Language :: Python :: 3.9',
-        'Topic :: Software Development :: Libraries'
+        "Development Status :: 3 - Alpha",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.9",
+        "License :: OSI Approved :: BSD License",
+        "Topic :: Software Development :: Libraries"
     ],
-    python_requires='>=3.9',
-    install_requires=INSTALL_REQUIRES,
-    license='License :: BSD3 License',
+    license="BSD-3-Clause"
 )
