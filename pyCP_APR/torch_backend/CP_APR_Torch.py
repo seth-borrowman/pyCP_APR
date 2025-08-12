@@ -154,9 +154,10 @@ class CP_APR_MU:
         self.logLikelihoods = tr.ones(n_iters, device=self.device)
         
         # Make sure epsilon is a tensor on the right device
-        if not isinstance(epsilon, tr.Tensor):
-            epsilon = tr.tensor(epsilon, dtype=self.dtype, device=self.device)
-        self.epsilon = epsilon.detach().clone()
+        if isinstance(self.epsilon, tr.Tensor):
+            self.epsilon = self.epsilon.detach().clone().to(self.device)
+        else:
+            self.epsilon = tr.tensor(self.epsilon).to(self.device)
         
         self.obj = 0
 
