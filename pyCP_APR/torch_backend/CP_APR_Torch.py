@@ -98,11 +98,19 @@ class CP_APR_MU:
         self.follow_M = follow_M
         self.saved_Ms = list()
 
-        # Set the default tensor type
+        # Map string names to actual torch dtypes
+        dtype_map = {
+            "torch.FloatTensor": tr.float32,
+            "torch.DoubleTensor": tr.float64,
+            "torch.cuda.FloatTensor": tr.float32,
+            "torch.cuda.DoubleTensor": tr.float64,
+        }
+        
+        # Convert string to actual dtype object
         if device == 'gpu' and dtype == 'torch.DoubleTensor':
             dtype = 'torch.cuda.DoubleTensor'
-
-        self.dtype = dtype
+        
+        self.dtype = dtype_map.get(dtype, tr.float32)  # default to float32 if not found
         tr.set_default_dtype(self.dtype)
 
         # GPU or CPU device parameters
