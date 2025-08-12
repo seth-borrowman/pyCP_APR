@@ -103,19 +103,22 @@ class CP_APR_MU:
             dtype = 'torch.cuda.DoubleTensor'
 
         self.dtype = dtype
-        tr.set_default_tensor_type(self.dtype)
+        tr.set_default_dtype(self.dtype)
 
         # GPU or CPU device parameters
-        self.device = device
-        self.device_num = str(device_num)
-
         if device == 'gpu':
             if tr.cuda.is_available():
-                self.device = tr.device('cuda:' + self.device_num)
-                if self.verbose != 0:
-                    print('Using', tr.cuda.get_device_name(int(self.device_num)))
+                device_str = f'cuda:{device_num}'
+                self.device = tr.device(device_str)
+            if self.verbose != 0:
+                print('Using', tr.cuda.get_device_name(int(device_num)))
             else:
-                raise Exception('No CUDA device found')
+                raise RuntimeError('No CUDA device found')
+        else:
+            self.device = tr.device('cpu')
+
+        # Set the default device for tensor creation
+        tr.set_default_device(self.device)
 
         # Return Format
         if return_type in ['torch', 'numpy']:
@@ -141,7 +144,7 @@ class CP_APR_MU:
         self.nInnerIters = tr.zeros(n_iters).to(self.device)
         self.times = tr.zeros(n_iters).to(self.device)
         self.logLikelihoods = tr.ones(n_iters).to(self.device)
-        self.epsilon = tr.tensor(epsilon).to(self.device)
+        self.epsilon = epsilon.detach().clone().to(self.device)
         self.obj = 0
 
 
