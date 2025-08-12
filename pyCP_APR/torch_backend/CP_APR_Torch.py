@@ -89,15 +89,15 @@ class CP_APR_MU:
         self.verbose = verbose
         self.simple_verbose = simple_verbose
         self.print_inner_itn = print_inner_itn
-
+        
         # Keep track of the runtime and the iteration stoptime
         self.start_time = -1
         self.final_iter = -1
         
         # Keep track of Ms
         self.follow_M = follow_M
-        self.saved_Ms = list()
-
+        self.saved_Ms = []
+        
         # Map string names to actual torch dtypes
         dtype_map = {
             "torch.FloatTensor": tr.float32,
@@ -111,33 +111,33 @@ class CP_APR_MU:
             dtype = 'torch.cuda.DoubleTensor'
         
         self.dtype = dtype_map.get(dtype, tr.float32)  # default to float32 if not found
-        tr.set_default_dtype(self.dtype)
-
+        
         # GPU or CPU device parameters
         if device == 'gpu':
             if tr.cuda.is_available():
                 device_str = f'cuda:{device_num}'
                 self.device = tr.device(device_str)
-            if self.verbose != 0:
-                print('Using', tr.cuda.get_device_name(int(device_num)))
+                if self.verbose != 0:
+                    print('Using', tr.cuda.get_device_name(int(device_num)))
             else:
                 raise RuntimeError('No CUDA device found')
         else:
             self.device = tr.device('cpu')
-
-        # Set the default device for tensor creation
+        
+        # Set default dtype and device for tensor creation (PyTorch 2.1+)
+        tr.set_default_dtype(self.dtype)
         tr.set_default_device(self.device)
-
-        # Return Format
+        
+        # Return Format validation
         if return_type in ['torch', 'numpy']:
             self.return_type = return_type
         else:
-            raise Exception('Invalid return type!')
-
+            raise ValueError('Invalid return type! Must be "torch" or "numpy".')
+        
         # Original X tensor, and KRUSKAL tensor M
         self.X = None
         self.M = None
-
+        
         # Optimization Parameters
         self.tol = tol
         self.stoptime = stoptime
@@ -147,14 +147,18 @@ class CP_APR_MU:
         self.random_state = random_state
         self.kappa = kappa
         self.kappa_tol = kappa_tol
-
-        self.kktViolations = -tr.ones(n_iters).to(self.device)
-        self.nInnerIters = tr.zeros(n_iters).to(self.device)
-        self.times = tr.zeros(n_iters).to(self.device)
-        self.logLikelihoods = tr.ones(n_iters).to(self.device)
-        self.epsilon = epsilon.detach().clone().to(self.device)
+        
+        self.kktViolations = -tr.ones(n_iters, device=self.device)
+        self.nInnerIters = tr.zeros(n_iters, device=self.device)
+        self.times = tr.zeros(n_iters, device=self.device)
+        self.logLikelihoods = tr.ones(n_iters, device=self.device)
+        
+        # Make sure epsilon is a tensor on the right device
+        if not isinstance(epsilon, tr.Tensor):
+            epsilon = tr.tensor(epsilon, dtype=self.dtype, device=self.device)
+        self.epsilon = epsilon.detach().clone()
+        
         self.obj = 0
-
 
     def train(self, tensor=[], coords=[], values=[], rank=2, Minit='random', Type='sptensor'):
         """
